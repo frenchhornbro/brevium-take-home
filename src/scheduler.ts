@@ -2,8 +2,8 @@ import API from "./api";
 import type { AppointmentInfo, AppointmentInfoRequest, AppointmentRequest, Doctor } from "./schemas";
 
 type Slot = {
-  day: string | undefined;
-  doc: Doctor | undefined;
+  time: string;
+  doc: Doctor;
 };
 
 export default class Scheduler {
@@ -81,42 +81,60 @@ export default class Scheduler {
       for (let i = 0; i < appointmentRequest.preferredDays.length; i++) {
         for (let j = 0; j < appointmentRequest.preferredDocs.length; j++) {
           preferred.push({
-            day: appointmentRequest.preferredDays[i],
-            doc: appointmentRequest.preferredDocs[j]
+            time: appointmentRequest.preferredDays[i]!,
+            doc: appointmentRequest.preferredDocs[j]!
           });
         }
       }
     }
 
     for (const slot of preferred) {
-      if (this.appointmentIsValid(appointmentRequest) && this.appointmentIsAvailable(slot)) {
+      if (this.appointmentIsValid(slot, appointmentRequest) && this.appointmentIsAvailable(slot)) {
         return {
-          doctorId: 1, //TODO
+          doctorId: slot.doc,
           personId: appointmentRequest.personId,
-          appointmentTime: slot.day || "undefined time", //TODO
+          appointmentTime: slot.time,
           isNewPatientAppointment: appointmentRequest.isNew,
           requestId: appointmentRequest.requestId
         };
       }
     }
-    throw new Error("Algorithm: REQUESTED APPOINTMENT UNAVAILABLE"); //TODO: Find a different, valid slot
+    throw new Error("Algorithm: REQUESTED APPOINTMENT UNAVAILABLE"); //TODO: Find the next available valid slot
   }
 
-  private appointmentIsValid(appointmentRequest: AppointmentRequest): boolean {
-    return true; //TODO
+  private appointmentIsValid(slot: Slot, appointmentRequest: AppointmentRequest): boolean {
+    const time = new Date(slot.time); // TODO: Verify the time zone is UTC
+    if (time.getDay() === 0 || time.getDay() === 6) { // Ensure it's a weekday
+      return false;
+    }
+    if (time.getFullYear() !== 2021 || (time.getMonth() != 10 && time.getMonth() != 11)) { // Ensure it's in the correct range
+      return false;
+    }
+    if (time.getHours() < 8 || time.getHours() > 16) { // Ensure it's within working hours
+      return false;
+    }
+    if (time.getMinutes() != 0) { // Ensure it's scheduled on the hour
+      return false;
+    }
+    if (appointmentRequest.isNew && (time.getHours() < 15 || time.getHours() > 16)) { // Ensure new patients are at 3/4pm
+      return false;
+    }
+    return true; //TODO: Check if appointments are separated by a week for the patient
   }
 
   private appointmentIsAvailable(slot: Slot): boolean {
-    const date = slot.day;
+    const date = slot.time;
     const doc = slot.doc;
-    if (date && doc && !this.schedule[this.getTimeKey(date)]?.[doc]) { // TODO: Handle when doctor / day are not specified
+    if (date && doc && !this.schedule[this.getTimeKey(date)]?.[doc]) {
       return true;
     }
+    // TODO: Handle when doctor / day are not specified
+    // Get next available valid slot
     return false;
   }
 
   private getTimeKey(time: string): string {
     const date = new Date(time);
-    return `${date.getDay}-${date.getMonth}-${date.getFullYear}`
+    return `${date.getDay}-${date.getMonth}-${date.getFullYear}:${date.getHours}`
   }
 }
