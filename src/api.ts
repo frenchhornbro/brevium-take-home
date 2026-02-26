@@ -1,5 +1,5 @@
 import Env from "./env";
-import type { AppointmentInfo } from "./schemas";
+import type { AppointmentInfo, AppointmentInfoRequest, AppointmentRequest } from "./schemas";
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -18,10 +18,29 @@ export default class API {
     return await this.fetchRequest("/api/Scheduling/Stop", "POST", {});
   }
 
-  private async fetchRequest(path: string, method: Method, body: any): Promise<any> {
+  public async getSchedule(): Promise<AppointmentInfo[]> {
+    return await this.fetchRequest("/api/Scheduling/Schedule", "GET");
+  }
+
+  public async getAppointmentRequest(): Promise<AppointmentRequest> {
+    return await this.fetchRequest("/api/Scheduling/AppointmentRequest", "GET");
+  }
+
+  public async scheduleAppointment(appointment: AppointmentInfoRequest): Promise<void> {
+    await this.fetchRequest("/api/Scheduling/Schedule", "POST", {
+      doctorId: appointment.doctorId,
+      personId: appointment.personId,
+      appointmentTime: appointment.appointmentTime,
+      isNewPatientAppointment: appointment.isNewPatientAppointment,
+      requestId: appointment.requestId,
+    });
+  }
+
+  private async fetchRequest(path: string, method: Method, body?: any): Promise<any> {
     const apiURL = this.env.getEnvVar("API_BASE_URL");
     const apiToken = this.env.getEnvVar("API_AUTH_TOKEN");
     const fullPath = `${apiURL}${path}?token=${apiToken}`;
+    const requestBody = method === "GET" ? null : JSON.stringify(body);
     console.log(`Sending a request to ${path}`);
     try {
       const response = await fetch(fullPath, {
@@ -29,17 +48,18 @@ export default class API {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(body)
+        body: requestBody
       });
       const responseJSON = await response.json();
       if (response.ok) {
         return responseJSON;
       }
       else {
-        return responseJSON;
+        console.warn(`Received status ${response.status} for ${path}: ${responseJSON}`);
+        return null;
       }
-    } catch {
-      console.warn(`fetchRequest for ${path} failed`);
+    } catch (e) {
+      console.error(`fetchRequest for ${path} failed: ${e}`);
     }
   }
 }
