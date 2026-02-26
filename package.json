@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx tsx src/main.ts"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/frenchhornbro/brevium-take-home#readme",
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "tsx": "^4.21.0"
   }
 }
