@@ -5,11 +5,11 @@ export default class Env {
     dotenv.config();
   }
 
-  public getEnvVar(varName: string) {
+  public getEnvVar(varName: string): string {
     const envVar = process.env[varName];
     if (envVar === undefined) {
       console.warn(`${varName} is undefined`);
     }
-    return envVar;
+    return envVar || "";
   }
 }

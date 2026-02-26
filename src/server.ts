@@ -1,12 +1,23 @@
+import API from "./api";
+
 export default class Server {
+  private api;
+
+  public constructor() {
+    this.api = new API();
+  }
+
   public async run() {
     console.log("Server is running...");
-    // TODO: Call endpoint
+    await this.api.startScheduling();
+    // TODO
     this.stop();
   }
 
   private async stop() {
-    // TODO: Call endpoint
+    console.log("Shutting down server...");
+    const finalSchedule = await this.api.stopScheduling();
+    console.log(`Final schedule = ${JSON.stringify(finalSchedule)}`);
   }
 
   public async getAppointmentRequest() {
