@@ -19,6 +19,10 @@
   },
   "homepage": "https://github.com/frenchhornbro/brevium-take-home#readme",
   "devDependencies": {
+    "@types/node": "^25.3.1",
     "tsx": "^4.21.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
   }
 }
