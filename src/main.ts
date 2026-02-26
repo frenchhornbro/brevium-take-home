@@ -1,4 +1,4 @@
-import Server from "./server";
+import Scheduler from "./scheduler";
 
-const server = new Server();
-server.run();
+const scheduler = new Scheduler();
+scheduler.run();
